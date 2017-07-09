@@ -115,9 +115,59 @@
 
 ---
 
-# :swimmer: liquidity :shower:
+![fit](assets/tw-01.pdf)
 
-^ how do Tw & Cf work?
+---
+
+![fit](assets/tw-02.pdf)
+
+---
+
+![fit](assets/tw-03.pdf)
+
+---
+
+![fit](assets/tw-04.pdf)
+
+---
+
+![fit](assets/tw-05.pdf)
+
+---
+
+![fit](assets/tw-06.pdf)
+
+---
+
+![fit](assets/tw-07.pdf)
+
+---
+
+![fit](assets/tw-08.pdf)
+
+---
+
+![fit](assets/tw-09.pdf)
+
+---
+
+![fit](assets/tw-10.pdf)
+
+---
+
+![fit](assets/tw-11.pdf)
+
+---
+
+![fit](assets/tw-12.pdf)
+
+---
+
+![fit](assets/tw-13.pdf)
+
+---
+
+# :swimmer: liquidity :shower:
 
 ---
 
@@ -268,10 +318,38 @@
 
 ## 1. no need for multiple workers
 ## 2. hard to manage deployments
-## 3. overengineered
+## 3. state machine
 
 ^ syncing state means that I couldn't reboot the server easily
 ^ hard to test rabbitMQ. proxy-require modules
+
+---
+
+![fit](assets/state-01.pdf)
+
+---
+
+![fit](assets/state-02.pdf)
+
+---
+
+![fit](assets/state-03.pdf)
+
+---
+
+![fit](assets/state-04.pdf)
+
+---
+
+![fit](assets/state-05.pdf)
+
+---
+
+![fit](assets/state-06.pdf)
+
+---
+
+![fit](assets/fuu.jpg)
 
 ---
 
@@ -325,40 +403,17 @@ const message = {
 const state = {
   openOrders: []
 };
+
+const newState = update(state, message);
+
+console.log(newState); // {openOrders: {id: 1}};
 ```
 
 ---
 
-## 1. syncing state
-## 2. redux actions & orchestration
-
----
-
-![fit](assets/state-01.pdf)
-
----
-
-![fit](assets/state-02.pdf)
-
----
-
-![fit](assets/state-03.pdf)
-
----
-
-![fit](assets/state-04.pdf)
-
----
-
-![fit](assets/state-05.pdf)
-
----
-
-![fit](assets/state-06.pdf)
-
----
-
-![fit](assets/fuu.jpg)
+## 1. leveldb is a :black_joker:
+## 2. crashes
+## 3. redux actions & orchestration
 
 ---
 
@@ -504,12 +559,12 @@ function(state, message) {
 
 ---
 
-# console.log(fetch(1));
+# console.log(fetch('url'));
 
 ```js
 {
   type: 'FETCH',
-  payload: {url: 1}
+  payload: {url: 'url'}
 }
 ```
 
@@ -550,8 +605,8 @@ function(state, message) {
 ---
 
 ## monads are hard
-## still hard to do integration tests
-## decoupling effects - business logic
+## suspended execution
+## complex code
 
 ---
 
@@ -561,76 +616,425 @@ function(state, message) {
 
 ## redux-like state
 ## redis
-## q architecture
+## actors
 
 ^ ts 2.3, 2.4
 
 ---
 
+![fit](assets/mvp4-01.pdf)
+
+---
+
+![fit](assets/mvp4-02.pdf)
+
+---
+
+![fit](assets/mvp4-03.pdf)
+
+---
+
+![fit](assets/mvp4-04.pdf)
+
+---
+
+![fit](assets/mvp4-05.pdf)
+
+---
+
+![fit](assets/mvp4-06.pdf)
+
+---
+
+![fit](assets/mvp4-07.pdf)
+
+---
+
+![fit](assets/mvp4-08.pdf)
+
+---
+
+![fit](assets/mvp4-09.pdf)
+
+---
+
+![fit](assets/mvp4-10.pdf)
+
+---
+
+![fit](assets/mvp4-11.pdf)
+
+---
+
+![fit](assets/mvp4-12.pdf)
+
+---
+
+![fit](assets/mvp4-13.pdf)
+
+---
+
 ## fully decoupled effects and business logic
-## easier integration tests
-## data driven tests
-## 100 LoC
+## 200 LoC
 
 ---
 
-# Deep dive into architecture redux + effects for decoupling side effects
+# testing
+
+----
+
+# TDD, ATDD, BDD…
 
 ---
 
-# Deep dive into testing
+# B__uzzword__ D__riven__ D__evelopment__
 
 ---
 
-intro
-- how I am
-  - what I do
-    - uasabi ltd
-  - cristiano & cf
-  - won't share details :D
+## robust
+## no coupling
+## comprehensive
 
-3 main arguments:
+---
 
-1. basic trading in simple terms
-  - what to trade
-    - forex, stock, future
-  - where to trade
-  - basic exchanges, CF, bitstamp, IB
-  - strategies
-    - buy high, sell low
-    - arbitrage
-    - market making
-    - roll your own (AI)
+# updateOrder
 
-2. how to build application that trades on the market
-  - event based
-    - ticker feed
-    - elm architecture
-      - record/replay
-  - why functional
-    - no state
-    - lambdas
-  - redux architecture
-    - CQRS
-    - redux loop
-    - actors & akka
+```ts
+updateOrder(order: Order, price: number): State
 
-3. how to test like a pro
-  - why do you even bother
-  - typescript as a testing tool
-  - unit testing with tape
-    - why not jest, ava, etc.
-  - unit testing with data
-  - integration
-  - snapshot testing
-    - record/replay
-  - ci/cd
+enum State {
+  UPDATE,
+  DO_NOTHING,
+  CANCEL
+}
+```
 
-outro
-- what does it look like?
-  - does it work?
-  - next?
-  - what I learned
-    - testing is key
-    - typescript is great
-    - finance is simple
+---
+
+top of the queue
+
+---
+
+# unit testing
+
+```js
+it('should update the order', () => {
+  const order = {id: 1, price: 1.12, active: true};
+  const currentTickPrice = 1.11;
+  expect(updateOrder(order, currentTickPrice)).toEqual(UPDATE);
+});
+```
+
+---
+
+# unit testing
+
+```js
+it('should update the order', () => {
+  const order = {id: 1, price: 1.12, active: true};
+  const currentTickPrice = 1.11;
+  expect(updateOrder(order, currentTickPrice)).toEqual(UPDATE);
+});
+
+it('should cancel the order', () => {
+  const order = {id: 1, price: 1.12, active: true};
+  const currentTickPrice = 1.22;
+  expect(updateOrder(order, currentTickPrice)).toEqual(CANCEL);
+});
+```
+
+---
+
+# unit testing
+
+```js
+it('should update the order', () => {
+  const order = {id: 1, price: 1.12, active: true};
+  const currentTickPrice = 1.11;
+  expect(updateOrder(order, currentTickPrice)).toEqual(UPDATE);
+});
+
+it('should do nothing', () => {
+  const order = {id: 1, price: 1.12, active: true};
+  const currentTickPrice = 1.12;
+  expect(updateOrder(order, currentTickPrice)).toEqual(DO_NOTHING);
+});
+
+it('should cancel the order', () => {
+  const order = {id: 1, price: 1.12, active: true};
+  const currentTickPrice = 1.22;
+  expect(updateOrder(order, currentTickPrice)).toEqual(CANCEL);
+});
+```
+
+---
+
+```js
+it('should update the order');
+it('should do nothing');
+it('should cancel the order');
+```
+
+---
+
+```js
+it('should update the order');
+it('should do nothing');
+it('should cancel the order');
+
+it('should NOT update the order');
+it('should NOT do nothing');
+it('should NOT cancel the order');
+```
+
+---
+
+## duplication :dancers:
+## duplication :dancers:
+
+---
+
+![110%](assets/sazerac.png)
+
+---
+
+# unit testing
+
+```js
+test(updateOrder, () => {
+  given({id: 1, price: 1.11, active: true}, 1.12).expect(UPDATE);
+  given({id: 1, price: 1.12, active: true}, 1.12).expect(DO_NOTHING);
+  given({id: 1, price: 1.12, active: true}, 1.22).expect(CANCEL);
+});
+```
+
+---
+
+# unit testing
+
+```js
+test(updateOrder, () => {
+  given({id: 1, price: 1.11, active: true}, 1.12).expect(UPDATE);
+  given({id: 1, price: 1.12, active: true}, 1.12).expect(DO_NOTHING);
+  given({id: 1, price: 1.12, active: true}, 1.22).expect(CANCEL);
+
+  given({id: 1, price: 1.11, active: false}, 1.12).expect(DO_NOTHING);
+  given({id: 1, price: 1.12, active: false}, 1.12).expect(DO_NOTHING);
+  given({id: 1, price: 1.12, active: false}, 1.22).expect(DO_NOTHING);
+});
+```
+
+---
+
+# incremental updates
+
+---
+
+# orders
+
+```ts
+const order = {
+  id: 1,
+  price: 1.12
+};
+```
+
+---
+
+# orders with state
+
+```ts
+const order = {
+  id: 1,
+  price: 1.12,
+  active: true // new field
+};
+```
+
+---
+
+## old tests still pass
+## /(search|replace)/gi
+## unpredictable
+
+---
+
+# typescript
+
+---
+
+# orders
+
+```ts
+interace IOrder = {
+  id: number
+  price: number
+};
+
+const order: IOrder = {
+  id: 1,
+  price: 1.12
+};
+```
+
+---
+
+# orders with state
+
+```ts
+interace IOrder = {
+  id: number
+  price: number
+  active: boolean
+};
+
+const order: IOrder = { // ERROR! `active` is missing
+  id: 1,
+  price: 1.12
+};
+```
+
+---
+
+# integration
+
+---
+
+![110%](assets/test-pyramid.png)
+
+---
+
+![fit](assets/2units-no-integration.gif)
+
+---
+
+![fit](assets/unit-vs-integration.gif)
+
+---
+
+## very hard to setup
+## harder to maintain
+## time consuming
+
+---
+
+# but…
+
+---
+
+## 𝒻(state, msg) -> [state, cmd]
+### +
+## snapshot testing
+
+---
+
+```ts
+const messages = [
+  {type: 'TICK', price: 1.12},
+  {type: 'TICK', price: 1.13},
+  {type: 'SUBMITTED', price: 1.13},
+  {type: 'COMPLETED', id: 1},
+];
+
+const initialState = {
+  openOrders: []
+};
+
+const finalState = messages.reduce((state, message) => {
+  return Update(state, message);
+});
+
+expect(finalState).toMatchSnapshot();
+```
+
+---
+
+![fit](assets/real-integration-test.png)
+
+---
+
+
+# all good but…
+
+---
+
+![fit](assets/transactions.pdf)
+
+---
+
+![fit](assets/cumulative-01.pdf)
+
+---
+
+![fit](assets/cumulative-02.pdf)
+
+---
+
+![fit](assets/cumulative-03.pdf)
+
+---
+
+## :two::heavy_multiplication_x: initial investment
+
+---
+
+# 957 transactions,
+# 3 motnhs later…
+
+---
+
+![fit](assets/game-over.png)
+
+---
+
+# lessons learned
+
+---
+
+## :one: js exponential growth
+
+---
+
+## proper type system
+## transpilers
+## functional, CQRS, etc.
+
+---
+
+## :two: trading is coding
+
+---
+
+## not only python
+## not only r
+## not only c++
+
+---
+
+![](assets/oanda-api.png)
+
+---
+
+## :three: build once, run everywhere
+
+---
+
+## bitcoin
+## stock
+## forex
+
+---
+
+# hungry for more?
+
+- [The Elm Architecture（0.18）effect moduleメモ](http://qiita.com/jooex/items/9cca8e4ec900b52ef30c)
+- [Effect Manager のしくみ](http://qiita.com/jinjor/items/bf61f8443efb0ce1b036)
+- [How to structure Elm with multiple models?](https://www.reddit.com/r/elm/comments/5jd2xn/how_to_structure_elm_with_multiple_models/)
+- [Tribeca](https://github.com/michaelgrosner/tribeca)
+- [Blackbird](https://github.com/butor/blackbird)
+- [Extensible Effects in Node.js, Part 1](https://www.humblespark.com/blog/extensible-effects-in-node-part-1)
+
+---
+
+# [fit] thanks
+### @danielepolencic
