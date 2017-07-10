@@ -16,11 +16,19 @@
 
 ---
 
+# :earth_africa: money transfer
+
+---
+
 # have you ever noticed?
 
 ---
 
 ![fill](./assets/transferwise-eur-gbp.jpg)
+
+---
+
+![fill](./assets/transferwise-eur-gbp-highlighted.jpg)
 
 ---
 
@@ -36,6 +44,10 @@
 
 ---
 
+![fill](./assets/transferwise-gbp-eur-highlighted.jpg)
+
+---
+
 ![fill](./assets/transferwise-gbp-eur-zoom.jpg)
 
 ---
@@ -44,8 +56,12 @@
 
 ---
 
-# i want to send £1000
-## __to :woman:__
+## eur/gbp __0.88__
+## gbp/eur __1.1364__
+
+---
+
+# send £1000 __to :woman:__
 
 ---
 
@@ -57,7 +73,7 @@
 
 ---
 
-# "i changed my mind"
+# send the money back
 
 ---
 
@@ -115,6 +131,14 @@
 
 ---
 
+![fit](assets/tw-04.pdf)
+
+---
+
+![fit](assets/tw-05.pdf)
+
+---
+
 ![fit](assets/tw-01.pdf)
 
 ---
@@ -124,14 +148,6 @@
 ---
 
 ![fit](assets/tw-03.pdf)
-
----
-
-![fit](assets/tw-04.pdf)
-
----
-
-![fit](assets/tw-05.pdf)
 
 ---
 
@@ -151,10 +167,6 @@
 
 ---
 
-![fit](assets/tw-10.pdf)
-
----
-
 ![fit](assets/tw-11.pdf)
 
 ---
@@ -164,6 +176,10 @@
 ---
 
 ![fit](assets/tw-13.pdf)
+
+---
+
+![fit](assets/tw-14.pdf)
 
 ---
 
@@ -316,12 +332,18 @@
 
 ---
 
-## 1. no need for multiple workers
-## 2. hard to manage deployments
-## 3. state machine
+## :weary:
+## overengineered
+
+---
+
+## :weary:
+## state machine
 
 ^ syncing state means that I couldn't reboot the server easily
 ^ hard to test rabbitMQ. proxy-require modules
+^ no need for multiple workers
+^ hard to manage deployments
 
 ---
 
@@ -357,18 +379,6 @@
 
 ---
 
-## redux
-## leveldb
-## docker
-
-^ ts 1.9
-
----
-
-![fit](assets/mvp2-01.pdf)
-
----
-
 ![fit](assets/logo-elm.png)
 ![fit](assets/logo-flux.png)
 ![fit](assets/logo-redux.png)
@@ -381,7 +391,7 @@
 
 ```js
 function update(state, message) {
-  switch(action.type) {
+  switch(message.type) {
 
   case ORDER_OPENED:
     /* ... */
@@ -411,13 +421,32 @@ console.log(newState); // {openOrders: {id: 1}};
 
 ---
 
-## 1. leveldb is a :black_joker:
-## 2. crashes
-## 3. redux actions & orchestration
+![fit](assets/mvp2-01.pdf)
 
 ---
 
-# Reducers are pure
+## redux
+## leveldb
+## docker
+
+^ ts 1.9
+
+---
+
+## :weary:
+## crashes
+
+---
+
+## :weary:
+## redux actions & orchestration
+
+^ 1. leveldb is a :black_joker:
+^ 2. crashes
+
+---
+
+# reducers are pure
 
 ---
 
@@ -427,7 +456,7 @@ console.log(newState); // {openOrders: {id: 1}};
 function(state, action) {
   switch(action.type) {
   case UPDATED_ORDER:
-    fetch(`/order${action.payload.orderId}`);
+    fetch(`/order/${action.payload.orderId}`);
     return state;
   }
 }
@@ -526,21 +555,7 @@ function(state, message) {
 
 ---
 
-## free monad
-## redux-like state
-## redis
-
-^ ts 2.0, 2.1, 2.2
-
----
-
 ## 𝒻(state, msg) -> [state, cmd]
-
----
-
-## 1. elm
-## 2. redux-loop
-## 3. redux-effects
 
 ---
 
@@ -567,6 +582,26 @@ function(state, message) {
   payload: {url: 'url'}
 }
 ```
+
+---
+
+# free monad
+### (interpreter pattern)
+
+^ ts 2.0, 2.1, 2.2
+^ redux-like state
+^ redis
+
+---
+
+todo:
+AST  + interpreter
+
+---
+
+## 1. elm
+## 2. redux-loop
+## 3. redux-effects
 
 ---
 
@@ -604,9 +639,8 @@ function(state, message) {
 
 ---
 
+## :weary:
 ## monads are hard
-## suspended execution
-## complex code
 
 ---
 
@@ -614,11 +648,11 @@ function(state, message) {
 
 ---
 
-## redux-like state
-## redis
 ## actors
 
 ^ ts 2.3, 2.4
+^ redux-like state
+^ redis
 
 ---
 
