@@ -183,6 +183,10 @@
 
 ---
 
+![fit](assets/tw-15.pdf)
+
+---
+
 # :swimmer: liquidity :shower:
 
 ---
@@ -338,7 +342,7 @@
 ---
 
 ## :weary:
-## state machine
+## sync state
 
 ^ syncing state means that I couldn't reboot the server easily
 ^ hard to test rabbitMQ. proxy-require modules
@@ -371,6 +375,18 @@
 
 ---
 
+![fit](assets/state-07.pdf)
+
+---
+
+![fit](assets/state-08.pdf)
+
+---
+
+![fit](assets/state-09.pdf)
+
+---
+
 ![fit](assets/fuu.jpg)
 
 ---
@@ -390,33 +406,36 @@
 ---
 
 ```js
-function update(state, message) {
-  switch(message.type) {
+const message = {
+  type: 'PRICE_TICK',
+  price: 1.3508
+};
 
-  case ORDER_OPENED:
-    /* ... */
-
-  default:
-  return state;
-  }
-}
+const state = {
+  currentPrice: 1.3502
+};
 ```
 
 ---
 
 ```js
-const message = {
-  type: ORDER_OPENED,
-  price: 1.3508
-};
+function update(state, message) {
+  switch(message.type) {
 
-const state = {
-  openOrders: []
-};
+  case 'PRICE_TICK':
+    return {
+      ...state,
+      currentPrice: message.price
+    };
+
+  default:
+    return state;
+  }
+}
 
 const newState = update(state, message);
 
-console.log(newState); // {openOrders: {id: 1}};
+console.log(newState); // {currentPrice: 1.3508};
 ```
 
 ---
@@ -446,17 +465,23 @@ console.log(newState); // {openOrders: {id: 1}};
 
 ---
 
-# reducers are pure
-
----
-
 # Bad :x:
 
 ```js
-function(state, action) {
-  switch(action.type) {
-  case UPDATED_ORDER:
-    fetch(`/order/${action.payload.orderId}`);
+function update(state, message) {
+  switch(message.type) {
+
+  case 'PRICE_TICK':
+
+    /* SIDE EFFECT! */
+    updateOrderWithPrice(message.price);
+
+    return {
+      ...state,
+      currentPrice: message.price
+    };
+
+  default:
     return state;
   }
 }
@@ -467,11 +492,11 @@ function(state, action) {
 #  Good :white_check_mark: 
 
 ```js
-function doAction(dispatch) {
-  dispatch({type: UPDATED_ORDER, id: '1'});
+function getPrice(dispatch) {
+  dispatch({type: 'PRICE_TICK'});
 
-  fetch(`/order${action.payload.orderId}`).then(order => {
-    dispatch({type: ORDER_RETRIEVED, order});
+  updateOrderWithPrice(message.price).then(order => {
+    dispatch({type: 'ORDER_UPDATED', order});
   });
 }
 ```
@@ -483,65 +508,25 @@ function doAction(dispatch) {
 ```js
 function(state, action) {
   switch(action.type) {
-  case UPDATED_ORDER:
-    /* update state */
-    return state;
-  }
-  case ORDER_RETRIEVED:
-    /* update state */
-    return state;
-  }
-}
-```
 
----
-
-## 1. retrieve price
-## 2. update order
-
----
-
-```js
-function(dispatch, getState) {
-  const order = getState().order;
-
-  dispatch({type: RETRIEVE_PRICE});
-
-  fetch('/price').then(price => {
-    if (price > order.price) {
-
-      dispatch({type: UPDATE_ORDER, orderId: order.id, price});
-
-      fetch('/update/order/{order.id}`, {price}).then(order => {
-        dispatch({type: ORDER_UPDATED, order});
-      });
+  case 'PRICE_TICK':
+    return {
+      ...state,
+      currentPrice: message.price
     };
-  });
-}
-```
 
----
-
-# meanwhile in the state...
-
----
-
-```js
-function(state, message) {
-  switch(action.type) {
-  case RETRIEVE_PRICE:
-    return {...state, isPending: true};
-  case UPDATE_ORDER:
-    return {...state, fetchingOrder: true};
-  case ORDER_UPDATED:
-    return {...state, order: action.order};
+  case 'ORDER_UPDATED':
+    return {
+      ...state,
+      openOrder: message.order
+    };
   }
 }
 ```
 
 ---
 
-# nah, it's not my problem
+## flow and state are separated
 
 ---
 
@@ -562,26 +547,49 @@ function(state, message) {
 ```js
 function(state, message) {
   switch(message.type) {
-    case PRICE_UPDATED:
-      if (message.price > state.currentPrice) {
-        return [state, fetch(`/update/${state.order.id}`, {price})];
-      } else {
-        return [state, NONE];
-      }
+
+    case 'PRICE_TICK':
+      return [
+        {...state, currentPrice: message.price},
+        updateOrderWithPrice(message.price)
+      ];
   }
 }
 ```
 
 ---
 
-# console.log(fetch('url'));
+# updateOrderWithPrice(message.price)
 
 ```js
-{
-  type: 'FETCH',
-  payload: {url: 'url'}
+function updateOrderWithPrice(price) {
+  return {
+    commandType: 'UPDATE_ORDER',
+    price
+  };
 }
+
+console.log(updateOrderWithPrice(1.2)) // {
+                                       //   price: 1.2,
+                                       //   commandType: 'UPDATE_ORDER'
+                                       // }
 ```
+
+---
+
+![fit](assets/interpreter-01.pdf)
+
+---
+
+![fit](assets/interpreter-02.pdf)
+
+---
+
+![fit](assets/interpreter-03.pdf)
+
+---
+
+![fit](assets/interpreter-04.pdf)
 
 ---
 
@@ -594,20 +602,43 @@ function(state, message) {
 
 ---
 
-todo:
-AST  + interpreter
+# AST
+
+```js
+const fetch = {
+  commandType: 'FETCH',
+  url: '/any_url'
+};
+
+const log = {
+  commandType: 'LOG',
+  value: 'Hello World!'
+};
+```
 
 ---
 
-## 1. elm
-## 2. redux-loop
-## 3. redux-effects
+# interpreter
+
+```js
+function interpreter(commands) {
+  commands.forEach(command => {
+    switch(command.commandType) {
+
+    case 'FETCH':
+      request(command.url);
+
+    case 'LOG':
+      console.log(command.value);
+    }
+
+  });
+}
+```
 
 ---
 
-## state + logic :two_women_holding_hands:
-## easier testing
-## interpreter
+## no side effects
 
 ---
 
@@ -615,7 +646,8 @@ AST  + interpreter
 
 ---
 
-# getPricesNow()
+## [ state,
+## updateOrderWithPrice(1.2) ]
 
 ---
 
@@ -636,6 +668,18 @@ AST  + interpreter
 ---
 
 ![fit](assets/mvp3-06.pdf)
+
+---
+
+## 1. elm
+## 2. redux-loop
+## 3. redux-effects
+
+---
+
+## state + logic :two_women_holding_hands:
+## easier testing
+## interpreter
 
 ---
 
@@ -713,21 +757,16 @@ AST  + interpreter
 
 ---
 
+## if a :evergreen_tree: falls in a forest
+## does it make a sound?
+
+---
+
 # testing
 
 ----
 
-# TDD, ATDD, BDD…
-
----
-
-# B__uzzword__ D__riven__ D__evelopment__
-
----
-
-## robust
-## no coupling
-## comprehensive
+## 1. data driven
 
 ---
 
@@ -745,7 +784,15 @@ enum State {
 
 ---
 
-top of the queue
+![fit](assets/top-of-queue-01.jpg)
+
+---
+
+![fit](assets/top-of-queue-02.jpg)
+
+---
+
+![fit](assets/top-of-queue-03.jpg)
 
 ---
 
@@ -823,8 +870,74 @@ it('should NOT cancel the order');
 
 ---
 
+```js
+it('should update the order', () => {
+  const order = {id: 1, price: 1.12, active: true};
+  const currentTickPrice = 1.11;
+  expect(updateOrder(order, currentTickPrice)).toEqual(UPDATE);
+});
+
+it('should do nothing', () => {
+  const order = {id: 1, price: 1.12, active: true};
+  const currentTickPrice = 1.12;
+  expect(updateOrder(order, currentTickPrice)).toEqual(DO_NOTHING);
+});
+
+it('should cancel the order', () => {
+  const order = {id: 1, price: 1.12, active: true};
+  const currentTickPrice = 1.22;
+  expect(updateOrder(order, currentTickPrice)).toEqual(CANCEL);
+});
+
+it('should NOT update the order', () => {
+  const order = {id: 1, price: 1.12, active: true};
+  const currentTickPrice = 1.11;
+  expect(updateOrder(order, currentTickPrice)).toEqual(UPDATE);
+});
+
+it('should NOT do nothing', () => {
+  const order = {id: 1, price: 1.12, active: true};
+  const currentTickPrice = 1.12;
+  expect(updateOrder(order, currentTickPrice)).toEqual(DO_NOTHING);
+});
+
+it('should NOT cancel the order', () => {
+  const order = {id: 1, price: 1.12, active: true};
+  const currentTickPrice = 1.22;
+  expect(updateOrder(order, currentTickPrice)).toEqual(CANCEL);
+});
+```
+
+---
+
 ## duplication :dancers:
 ## duplication :dancers:
+
+---
+
+# unit testing
+
+```js
+it('should update the order', () => {
+
+  const order = {id: 1, price: 1.12, active: true};
+  const currentTickPrice = 1.11;
+
+  expect(updateOrder(order, currentTickPrice)).toEqual(UPDATE);
+});
+```
+
+---
+
+# unit testing
+
+```js
+it('should update the order', () => {
+  const order = {id: 1, price: 1.12, active: true}; // CHANGE ME
+  const currentTickPrice = 1.11; // CHANGE ME
+  expect(updateOrder(order, currentTickPrice)).toEqual(UPDATE);
+});
+```
 
 ---
 
@@ -860,7 +973,7 @@ test(updateOrder, () => {
 
 ---
 
-# incremental updates
+# 2. sound :musical_note:
 
 ---
 
@@ -930,7 +1043,7 @@ const order: IOrder = { // ERROR! `active` is missing
 
 ---
 
-# integration
+# 3. integration
 
 ---
 
@@ -988,7 +1101,7 @@ expect(finalState).toMatchSnapshot();
 ---
 
 
-# all good but…
+# show me the :dollar:!
 
 ---
 
