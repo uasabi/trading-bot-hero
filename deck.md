@@ -1138,7 +1138,7 @@ expect(finalState).toMatchSnapshot();
 
 ---
 
-## :one: js exponential growth
+## :one: js is awesome
 
 ---
 
@@ -1152,9 +1152,9 @@ expect(finalState).toMatchSnapshot();
 
 ---
 
-## not only python
-## not only r
-## not only c++
+## not only python/r/c++
+## no MBA/Phd
+## no special HW or SW
 
 ---
 
